@@ -2,10 +2,6 @@ import numpy as np
 
 mnist_data = np.load('../mnist.npz')
 
-csv_file = 'data.csv'
-
-data_keys = mnist_data.files
-
 test_samples_per_class = np.bincount(mnist_data['y_test'])
 train_samples_per_class = np.bincount(mnist_data['y_train'])
 
