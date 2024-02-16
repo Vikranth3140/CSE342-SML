@@ -23,8 +23,9 @@ for i in range(10):
     # Add the samples to the list
     samples.append(class_samples)
 
-# Concatenate the samples to form a 784x1000 matrix
-X = np.concatenate(samples, axis=0)
+Y = np.concatenate(samples, axis=0)
+
+X = Y.T
 
 # Compute the mean of X
 mean_X = np.mean(X, axis=0)

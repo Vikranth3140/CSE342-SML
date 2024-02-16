@@ -1,28 +1,30 @@
 import numpy as np
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
-# Load MNIST data
 mnist_data = np.load('../mnist.npz')
 
-# Extract data
 x_train = mnist_data['x_train']
 y_train = mnist_data['y_train']
 
-# Vectorize the images
-x_train = x_train.reshape((x_train.shape[0], -1))
+x_train = x_train.reshape((x_train.shape[0], 784))
 
-# Create a QDA object
-qda = QuadraticDiscriminantAnalysis(store_covariance=True)  # Set store_covariance to True
+class_means = []
+class_covariances = []
 
-# Fit the QDA model
-qda.fit(x_train, y_train)
+for i in range(10):
+    class_samples = x_train[y_train == i]
+    class_mean = np.mean(class_samples, axis=0)
+    class_covariance = np.cov(class_samples.T)
+    class_means.append(class_mean)
+    class_covariances.append(class_covariance)
 
-# Print the mean vectors
 print("Mean vectors:")
-for i, mean_vec in enumerate(qda.means_):
+for i, mean_vec in enumerate(class_means):
     print(f"Class {i}: {mean_vec}")
 
-# Print the covariance matrices
 print("\nCovariance matrices:")
-for i, cov_mat in enumerate(qda.covariance_):
+for i, cov_mat in enumerate(class_covariances):
     print(f"Class {i}: {cov_mat}")
+
+qda = QuadraticDiscriminantAnalysis(store_covariance=True)
+qda.fit(x_train, y_train)
