@@ -1,60 +1,48 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-# Load MNIST data
-mnist_data = np.load('../mnist.npz')
+def load_mnist_data(file_path):
+    mnist_data = np.load(file_path)
+    x_train = mnist_data['x_train']
+    y_train = mnist_data['y_train']
+    x_train = x_train.reshape((x_train.shape[0], -1))
+    return x_train, y_train
 
-# Extract data
-x_train = mnist_data['x_train']
-y_train = mnist_data['y_train']
+def create_data_matrix(x_train, y_train, num_samples_per_class=100):
+    samples = []
+    for i in range(10):
+        class_samples = x_train[y_train == i][:num_samples_per_class]
+        samples.append(class_samples)
+    Y = np.concatenate(samples, axis=0)
+    X = Y.T
+    return X, len(Y)
 
-# Vectorize the images
-x_train = x_train.reshape((x_train.shape[0], -1))
+def perform_pca(X, U):
+    Y = np.dot(U.T, X.T)
+    X_recon = np.dot(U, Y)
+    mse = mean_squared_error(X, X_recon.T)
+    return Y, mse
 
-# Initialize an empty list to store the samples
-samples = []
-
-# For each class
-for i in range(10):
-    # Get the first 100 samples from the class
-    class_samples = x_train[y_train == i][:100]
+if __name__ == "__main__":
+    file_path = '../mnist.npz'
+    x_train, y_train = load_mnist_data(file_path)
+    X, num_samples = create_data_matrix(x_train, y_train)
     
-    # Add the samples to the list
-    samples.append(class_samples)
+    mean_X = np.mean(X, axis=0)
+    X = X - mean_X
+    
+    S = np.cov(X, rowvar=False)
 
-Y = np.concatenate(samples, axis=0)
+    eigenvalues, eigenvectors = np.linalg.eig(S)
 
-X = Y.T
+    indices = np.argsort(eigenvalues)[::-1]
 
-# Compute the mean of X
-mean_X = np.mean(X, axis=0)
+    eigenvalues = eigenvalues[indices]
+    eigenvectors = eigenvectors[:, indices]
 
-# Subtract the mean from X
-X = X - mean_X
+    U = eigenvectors
 
-# Compute the covariance matrix
-S = np.cov(X, rowvar=False)
-
-# Compute the eigenvalues and eigenvectors
-eigenvalues, eigenvectors = np.linalg.eig(S)
-
-# Sort the eigenvalues in descending order, and get the indices
-indices = np.argsort(eigenvalues)[::-1]
-
-# Sort the eigenvalues and eigenvectors
-eigenvalues = eigenvalues[indices]
-eigenvectors = eigenvectors[:, indices]
-
-# Create the matrix U
-U = eigenvectors
-
-# Perform the PCA transformation
-Y = np.dot(U.T, X.T)
-
-# Reconstruct the data
-X_recon = np.dot(U, Y)
-
-# Compute the MSE between X and X_recon
-mse = mean_squared_error(X, X_recon.T)
-
-print(f"MSE between X and X_recon: {mse}")
+    print()
+    Y, mse = perform_pca(X, U)
+    print()
+    print(f"MSE between X and X_recon: {mse}")
