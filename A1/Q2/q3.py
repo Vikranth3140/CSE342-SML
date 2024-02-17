@@ -23,7 +23,7 @@ if __name__ == "__main__":
     mean_X = np.mean(X, axis=0)
     X = X - mean_X
     
-    S = np.dot(X.T, X) / (X.shape[0] - 1)
+    S = np.dot(X.T, X) / 999
 
     eigenvalues, eigenvectors = np.linalg.eig(S)
 
