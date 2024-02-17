@@ -27,22 +27,24 @@ if __name__ == "__main__":
     file_path = '../mnist.npz'
     x_train, y_train = load_mnist_data(file_path)
     X, num_samples = create_data_matrix(x_train, y_train)
-    
-    mean_X = np.mean(X, axis=0)
-    X = X - mean_X
-    
-    S = np.cov(X, rowvar=False)
+
+    X = X.astype(float)
+
+    X -= np.mean(X, axis=0)
+
+    S = np.dot(X, X.T) / (num_samples - 1)
 
     eigenvalues, eigenvectors = np.linalg.eig(S)
 
-    indices = np.argsort(eigenvalues)[::-1]
-
-    eigenvalues = eigenvalues[indices]
-    eigenvectors = eigenvectors[:, indices]
+    idx = eigenvalues.argsort()[::-1]
+    eigenvalues = eigenvalues[idx]
+    eigenvectors = eigenvectors[:, idx]
 
     U = eigenvectors
 
-    print()
-    Y, mse = perform_pca(X, U)
-    print()
-    print(f"MSE between X and X_recon: {mse}")
+    Y = np.dot(U.T, X)
+
+    X_recon = np.dot(U, Y)
+
+    mse = np.mean((X - X_recon) ** 2)
+    print("MSE between X and X_recon:", mse)

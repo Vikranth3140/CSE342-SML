@@ -1,7 +1,7 @@
 import numpy as np
 
-def load_mnist_data(file_path):
-    mnist_data = np.load(file_path)
+def load_mnist_data():
+    mnist_data = np.load('../mnist.npz')
     x_train = mnist_data['x_train']
     y_train = mnist_data['y_train']
     x_train = x_train.reshape((x_train.shape[0], -1))
@@ -17,14 +17,13 @@ def create_data_matrix(x_train, y_train, num_samples_per_class=100):
     return X, len(Y)
 
 if __name__ == "__main__":
-    file_path = '../mnist.npz'
-    x_train, y_train = load_mnist_data(file_path)
+    x_train, y_train = load_mnist_data()
     X, num_samples = create_data_matrix(x_train, y_train)
     
     mean_X = np.mean(X, axis=0)
     X = X - mean_X
     
-    S = np.cov(X, rowvar=False)
+    S = np.dot(X.T, X) / (X.shape[0] - 1)
 
     eigenvalues, eigenvectors = np.linalg.eig(S)
 
