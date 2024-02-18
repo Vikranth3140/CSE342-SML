@@ -1,5 +1,11 @@
 import numpy as np
 
+def load_mnist_data():
+    with np.load('../mnist.npz') as mnist_data:
+        test_samples_per_class = count_samples_per_class(mnist_data['y_test'])
+        train_samples_per_class = count_samples_per_class(mnist_data['y_train'])
+    return test_samples_per_class, train_samples_per_class
+
 def count_samples_per_class(samples):
     samples_per_class = np.bincount(samples)
     return samples_per_class
@@ -15,10 +21,7 @@ def calculate_total_samples(samples_per_class):
     total_samples = np.sum(samples_per_class)
     return total_samples
 
-mnist_data = np.load('../mnist.npz')
-
-test_samples_per_class = count_samples_per_class(mnist_data['y_test'])
-train_samples_per_class = count_samples_per_class(mnist_data['y_train'])
+test_samples_per_class, train_samples_per_class = load_mnist_data()
 
 print_samples_per_class(test_samples_per_class, "test")
 print_samples_per_class(train_samples_per_class, "train")
