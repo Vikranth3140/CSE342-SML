@@ -1,137 +1,110 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.metrics import accuracy_score, confusion_matrix, mean_squared_error
+from sklearn.metrics import accuracy_score, confusion_matrix
 
-# Load MNIST data
-mnist_data = np.load('../mnist.npz')
+def load_mnist_data():
+    mnist_data = np.load('../mnist.npz')
+    x_train = mnist_data['x_train']
+    y_train = mnist_data['y_train']
+    x_train = x_train.reshape((x_train.shape[0], -1))
+    return x_train, y_train
 
-# Extract data
-x_train = mnist_data['x_train']
-y_train = mnist_data['y_train']
+def load_mnist_test_data():
+    mnist_data = np.load('../mnist.npz')
+    x_test = mnist_data['x_test']
+    y_test = mnist_data['y_test']
+    x_test = x_test.reshape((x_test.shape[0], -1))
+    return x_test, y_test
 
-# Vectorize the images
-x_train = x_train.reshape((x_train.shape[0], -1))
-
-# Initialize an empty list to store the samples
-samples = []
-
-# For each class
-for i in range(10):
-    # Get the first 100 samples from the class
-    class_samples = x_train[y_train == i][:100]
-    
-    # Add the samples to the list
-    samples.append(class_samples)
-
-Y = np.concatenate(samples, axis=0)
-
-X = Y.T
-
-# Compute the mean of X
-mean_X = np.mean(X, axis=0)
-
-# Subtract the mean from X
-X = X - mean_X
-
-# Compute the covariance matrix
-S = np.cov(X, rowvar=False)
-
-# Compute the eigenvalues and eigenvectors
-eigenvalues, eigenvectors = np.linalg.eig(S)
-
-# Sort the eigenvalues in descending order, and get the indices
-indices = np.argsort(eigenvalues)[::-1]
-
-# Sort the eigenvalues and eigenvectors
-eigenvalues = eigenvalues[indices]
-eigenvectors = eigenvectors[:, indices]
-
-# Create the matrix U
-U = eigenvectors
-
-# Perform the PCA transformation
-Y = np.dot(U.T, X.T)
-
-# Reconstruct the data
-X_recon = np.dot(U, Y)
-
-# Compute the MSE between X and X_recon
-mse = mean_squared_error(X, X_recon.T)
-
-# Define the values of p
-p_values = [5, 10, 20]
-
-# For each value of p
-for p in p_values:
-    # Select the first p eigenvectors from U
-    U_p = U[:, :p]
-
-    # Perform the PCA transformation
-    Y_p = np.dot(U_p.T, X.T)
-
-    # Reconstruct the data
-    X_recon_p = np.dot(U_p, Y_p)
-
-    # Add the mean that was removed from X
-    X_recon_p = X_recon_p + mean_X
-
-    # Reshape each column to 28x28
-    X_recon_p = X_recon_p.reshape((-1, 28, 28))
-
-    # Create a figure
-    fig, axs = plt.subplots(10, 5, figsize=(10, 20))
-
-    # For each class
+def create_data_matrix(x_train, y_train):
+    samples = []
     for i in range(10):
-        # Get 5 samples from the class
-        samples = X_recon_p[y_train[:1000] == i][:5]
-        
-        # For each sample
-        for j in range(5):
-            # Plot the sample
-            axs[i, j].imshow(samples[j], cmap='gray')
-            axs[i, j].axis('off')
+        class_samples = x_train[y_train == i][:100]
+        samples.append(class_samples)
+    Y = np.concatenate(samples, axis=0)
+    X = Y.T
+    return X, len(Y)
 
-# Load MNIST data
-mnist_data = np.load('../mnist.npz')
+if __name__ == "__main__":
+    x_train, y_train = load_mnist_data()
+    X, num_samples = create_data_matrix(x_train, y_train)
 
-# Extract data
-x_train = mnist_data['x_train']
-y_train = mnist_data['y_train']
-x_test = mnist_data['x_test']
-y_test = mnist_data['y_test']
+    mean_X = np.mean(X, axis=0)
+    X = X - mean_X
 
-# Vectorize the images
-x_train = x_train.reshape((x_train.shape[0], -1))
-x_test = x_test.reshape((x_test.shape[0], -1))
+    S = np.dot(X, X.T) / 999
 
-# Create a QDA object
-qda = QuadraticDiscriminantAnalysis(store_covariance=True)
+    eigenvalues, eigenvectors = np.linalg.eig(S)
 
-# Fit the QDA model
-qda.fit(x_train, y_train)
+    indices = np.argsort(eigenvalues)[::-1]
 
-# Define the values of p
-p_values = [5, 10, 20]
+    eigenvalues = eigenvalues[indices]
+    eigenvectors = eigenvectors[:, indices]
 
-# For each value of p
-for p in p_values:
-    # Select the first p eigenvectors from U
-    U_p = U[:, :p]
+    U = eigenvectors
 
-    # Perform the PCA transformation on the test data
-    Y_test = np.dot(U_p.T, x_test.T)
+    Y = np.dot(U.T, X)
+    U = U[:, :num_samples]
 
-    # Apply the QDA model to the transformed test data
-    y_pred = qda.predict(Y_test.T)
+    X_recon = np.dot(U, Y)
+    mse = np.mean((X - X_recon) ** 2)
 
-    # Compute the overall accuracy
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Overall accuracy with p={p}: {accuracy}")
+    p_values = [5, 10, 20]
 
-    # Compute the class-wise accuracy
-    cm = confusion_matrix(y_test, y_pred)
-    class_wise_accuracy = cm.diagonal() / cm.sum(axis=1)
-    for i, acc in enumerate(class_wise_accuracy):
-        print(f"Accuracy for class {i} with p={p}: {acc}")
+    for p in p_values:
+        U_p = U[:, :p]
+
+        Y_p = np.dot(U_p.T, X)
+
+        X_recon_p = np.dot(U_p, Y_p)
+
+        X_recon_p = X_recon_p + mean_X
+
+        X_recon_p = np.real(X_recon_p.astype(np.float64))
+        X_recon_p = X_recon_p.reshape((-1, 28, 28))
+
+        fig, axs = plt.subplots(10, 5, figsize=(10, 20))
+
+        for i in range(10):
+            samples = X_recon_p[y_train[:1000] == i][:5]
+            
+            for j in range(5):
+                axs[i, j].imshow(samples[j], cmap='gray')
+                axs[i, j].axis('off')
+
+        plt.suptitle(f"Reconstructed images with p={p}")
+        plt.show()
+
+
+    x_test, y_test = load_mnist_test_data()
+
+    Y_test = np.dot(U_p.T, x_test)
+
+    p_values = [5, 10, 20]
+
+    for p in p_values:
+            # Select the first p eigenvectors from U
+            U_p = U[:, :p]
+
+            # Transform test data using selected eigenvectors
+            Y_test_p = np.dot(U_p.T, x_test.T)
+
+            # Reshape each column to match the shape of training data
+            Y_test_p = Y_test_p.T
+
+            # Apply QDA on transformed test data
+            qda = QuadraticDiscriminantAnalysis()
+            qda.fit(Y.T, y_train)  # Train QDA on the transformed training data Y
+            y_pred = qda.predict(Y_test_p)  # Predict labels for transformed test data
+
+            # Calculate accuracy on test set
+            test_accuracy = accuracy_score(y_test, y_pred)
+            print(f"Accuracy with {p} principal components: {test_accuracy}")
+
+            # Calculate per-class accuracy
+            cm = confusion_matrix(y_test, y_pred)
+            per_class_accuracy = cm.diagonal() / cm.sum(axis=1)
+            print(f"Per-class accuracy with {p} principal components:")
+            for i in range(10):
+                print(f"Class {i}: {per_class_accuracy[i]}")
