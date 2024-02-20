@@ -84,25 +84,20 @@ if __name__ == "__main__":
     p_values = [5, 10, 20]
 
     for p in p_values:
-            # Select the first p eigenvectors from U
             U_p = U[:, :p]
 
-            # Transform test data using selected eigenvectors
             Y_test_p = np.dot(U_p.T, x_test.T)
 
-            # Reshape each column to match the shape of training data
             Y_test_p = Y_test_p.T
 
             # Apply QDA on transformed test data
             qda = QuadraticDiscriminantAnalysis()
-            qda.fit(Y.T, y_train)  # Train QDA on the transformed training data Y
-            y_pred = qda.predict(Y_test_p)  # Predict labels for transformed test data
+            qda.fit(Y.T, y_train)
+            y_pred = qda.predict(Y_test_p)
 
-            # Calculate accuracy on test set
             test_accuracy = accuracy_score(y_test, y_pred)
             print(f"Accuracy with {p} principal components: {test_accuracy}")
 
-            # Calculate per-class accuracy
             cm = confusion_matrix(y_test, y_pred)
             per_class_accuracy = cm.diagonal() / cm.sum(axis=1)
             print(f"Per-class accuracy with {p} principal components:")
