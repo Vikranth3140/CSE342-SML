@@ -2,7 +2,6 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.metrics import accuracy_score
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 def load_mnist_data():
