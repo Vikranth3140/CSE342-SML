@@ -49,8 +49,8 @@ Xrecon = np.dot(U, Y)
 MSE = np.mean((np.real(X_centered) - np.real(Xrecon))**2)
 print("MSE between X_centered and X_recon:", MSE)
 
-# arr = [5, 10, 200, 784]
-arr = [5, 10, 15]
+arr = [5, 10, 200, 784]
+# arr = [5, 10, 15]
 for p in arr:
     Up = U[:, :p]
     Yp = np.dot(Up.T, X_centered)
