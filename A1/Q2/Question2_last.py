@@ -39,7 +39,7 @@ sorted_eigenvalues = eigenvalues[sort_ind]
 U = eigenvectors[:, sort_ind]
 
 # Perform QDA for each value of p
-arr = [5,10,15]
+arr = [5, 10, 15]
 for p in arr:
     Up = U[:, :p]
     Yp_train = np.dot(Up.T, X_centered)
@@ -56,7 +56,7 @@ for p in arr:
         class_cov_X[digit] = cov
         col_count+=100
         
-    #Finding Determinat and Inverse of Covariance Matrix for computation
+    # Finding Determinat and Inverse of Covariance Matrix for computation
     determinants = []
     inverses = []
     subset_class_priors = []

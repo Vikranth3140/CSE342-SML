@@ -33,10 +33,10 @@ for digit in range(10):
 print("Shape of X:", X.shape)
 print("Shape of Y:", Y.shape)
 
-#Remove mean from X.
+# Remove mean from X.
 X_centered = X - np.mean(X, axis=0)
 
-#Computing covariance ,eigenvectors and eigenvalue. Applying PCA on the centralized PCA.
+# Computing covariance ,eigenvectors and eigenvalue. Applying PCA on the centralized PCA.
 cov_matrix = np.dot(X_centered, X_centered.T) / 999
 eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
 sorted_indices = np.argsort(eigenvalues)[::-1] #Sorting in descending order
@@ -49,7 +49,8 @@ Xrecon = np.dot(U, Y)
 MSE = np.mean((np.real(X_centered) - np.real(Xrecon))**2)
 print("MSE between X_centered and X_recon:", MSE)
 
-arr = [5, 10, 200, 784]
+# arr = [5, 10, 200, 784]
+arr = [5, 10, 15]
 for p in arr:
     Up = U[:, :p]
     Yp = np.dot(Up.T, X_centered)
@@ -69,7 +70,7 @@ for p in arr:
     plt.tight_layout()
     plt.show()
 
-#Pre-processing: 
+# Pre-processing
 class_cov_X = {}
 class_mean_X = {}
 col_count = 0
@@ -83,7 +84,7 @@ for digit in range(10):
     col_count += 100
 
 
-#Finding Determinat and Inverse of Covariance Matrix for computation
+# Finding Determinat and Inverse of Covariance Matrix for computation
 determinants = []
 inverses = []
 subset_class_priors = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]
