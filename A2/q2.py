@@ -36,12 +36,14 @@ for i in tqdm(range(5), desc='Bagging and Training Decision Trees'):
 
 # Perform majority voting among the tree predictions
 def majority_vote(predictions):
-    majority = np.zeros_like(predictions[0])
-    for preds in predictions:
-        for i in range(len(preds)):
-            counts = np.bincount(preds[i])
-            majority[i] += np.argmax(counts)
-    majority /= len(predictions)
+    # Initialize an array to store the majority voting predictions
+    majority = np.zeros(predictions[0].shape)
+    
+    # Perform majority voting for each sample
+    for i in range(len(predictions[0])):
+        counts = np.bincount([preds[i] for preds in predictions])
+        majority[i] = np.argmax(counts)
+    
     return majority.astype(int)
 
 # Get the majority voting predictions
