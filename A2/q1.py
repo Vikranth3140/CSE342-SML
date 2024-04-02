@@ -1,53 +1,69 @@
 import numpy as np
+from tqdm import tqdm
 
-# Loading the dataset
-data = np.load("mnist.npz")
+# Load the MNIST dataset from the local file
+path = 'mnist.npz'  # Update this path with the local file path
+with np.load(path) as data:
+    x_train = data['x_train']
+    y_train = data['y_train']
 
-# Check the shapes of the loaded arrays
-x_train = data['x_train']
-y_train = data['y_train']
-x_test = data["x_test"]
-y_test = data["y_test"]
+# Flatten the images to 1D arrays
+x_train_flattened = x_train.reshape(x_train.shape[0], -1)
 
-# Reshape images to make them 784-dimensional
-x_train_flat = data["x_train"].reshape(-1, 784)
-x_test_flat = data["x_test"].reshape(-1, 784)
+# Define the number of terminal nodes
+num_nodes = 3
 
-# Filter data for classes 0, 1, and 2
-indices_0 = np.where(y_train == 0)[0]
-indices_1 = np.where(y_train == 1)[0]
-indices_2 = np.where(y_train == 2)[0]
+# Function to calculate Gini index
+def calculate_gini(labels):
+    unique_labels, counts = np.unique(labels, return_counts=True)
+    probabilities = counts / len(labels)
+    gini_index = 1 - np.sum(probabilities**2)
+    return gini_index
 
-x_train_0 = x_train[indices_0]
-x_train_1 = x_train[indices_1]
-x_train_2 = x_train[indices_2]
+# Function to find the best split for a given dimension
+def find_best_split(feature_values, labels):
+    min_gini = float('inf')
+    best_split = None
+    for value in np.unique(feature_values):
+        left_indices = np.where(feature_values <= value)[0]
+        right_indices = np.where(feature_values > value)[0]
+        
+        gini_left = calculate_gini(labels[left_indices])
+        gini_right = calculate_gini(labels[right_indices])
+        
+        total_gini = (len(left_indices) * gini_left + len(right_indices) * gini_right) / len(labels)
+        
+        if total_gini < min_gini:
+            min_gini = total_gini
+            best_split = value
+    
+    return min_gini, best_split
 
-# Combine data for classes 0, 1, and 2
-x_train_combined = np.concatenate((x_train_0, x_train_1, x_train_2), axis=0)
+# Initialize a decision tree structure
+decision_tree = {}
 
-# Center the data
-X_mean = np.mean(x_train_combined, axis=0)
-X_centered = x_train_combined - X_mean
+# Grow the decision tree with 3 terminal nodes
+for node in tqdm(range(num_nodes), desc='Growing Decision Tree'):
+    best_dimension = None
+    best_split_value = None
+    min_gini_index = float('inf')
+    
+    for dimension in tqdm(range(x_train_flattened.shape[1]), desc=f'Node {node} Split'):
+        feature_values = x_train_flattened[:, dimension]
+        gini_index, split_value = find_best_split(feature_values, y_train)
+        
+        if gini_index < min_gini_index:
+            min_gini_index = gini_index
+            best_dimension = dimension
+            best_split_value = split_value
+    
+    # Store the best split for this node
+    decision_tree[node] = {'dimension': best_dimension, 'split_value': best_split_value}
 
-# Calculate the covariance matrix
-cov_matrix = np.dot(X_centered, X_centered.T) / 999
+    # Update labels for next iteration (considering the split)
+    split_indices = np.where(x_train_flattened[:, best_dimension] <= best_split_value)[0]
+    y_train[split_indices] = node  # Update labels to indicate node membership
 
-# Calculate eigenvalues and eigenvectors
-eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
-
-# Sort eigenvalues and corresponding eigenvectors
-sorted_indices = np.argsort(eigenvalues)[::-1]
-sorted_eigenvalues = eigenvalues[sorted_indices]
-sorted_eigenvectors = eigenvectors[:, sorted_indices]
-
-# Select the top p eigenvectors
-p = 10
-U = sorted_eigenvectors[:, :p]
-
-# Project the centered data onto the top p eigenvectors
-Y = np.dot(U.T, X_centered)
-
-# Reconstruct the data
-X_recon = np.dot(U, Y)
-
-# Now you can use X_recon for further analysis or tasks
+# Print the decision tree structure
+for node, details in decision_tree.items():
+    print(f"Node {node}: Split on Dimension {details['dimension']} at Value {details['split_value']}")
