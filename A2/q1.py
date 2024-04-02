@@ -10,6 +10,18 @@ with np.load(path) as data:
 # Flatten the images to 1D arrays
 x_train_flattened = x_train.reshape(x_train.shape[0], -1)
 
+# Perform PCA on the training data to reduce to 10 dimensions
+X_mean = np.mean(x_train_flattened, axis=0)
+X_centered = x_train_flattened - X_mean
+cov_matrix = np.dot(X_centered.T, X_centered) / len(x_train_flattened)
+eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+sorted_indices = np.argsort(eigenvalues)[::-1]
+sorted_eigenvalues = eigenvalues[sorted_indices]
+U = eigenvectors[:, sorted_indices]
+U_10 = U[:, :10]  # Select the top 10 eigenvectors for PCA
+
+Y_train = np.dot(U_10.T, X_centered.T).T  # Project training data onto the top 10 eigenvectors
+
 # Define the number of terminal nodes
 num_nodes = 3
 
@@ -48,8 +60,8 @@ for node in tqdm(range(num_nodes), desc='Growing Decision Tree'):
     best_split_value = None
     min_gini_index = float('inf')
     
-    for dimension in tqdm(range(x_train_flattened.shape[1]), desc=f'Node {node} Split'):
-        feature_values = x_train_flattened[:, dimension]
+    for dimension in tqdm(range(10), desc=f'Node {node} Split'):  # Use only top 10 PCA dimensions
+        feature_values = Y_train[:, dimension]
         gini_index, split_value = find_best_split(feature_values, y_train)
         
         if gini_index < min_gini_index:
@@ -61,7 +73,7 @@ for node in tqdm(range(num_nodes), desc='Growing Decision Tree'):
     decision_tree[node] = {'dimension': best_dimension, 'split_value': best_split_value}
 
     # Update labels for next iteration (considering the split)
-    split_indices = np.where(x_train_flattened[:, best_dimension] <= best_split_value)[0]
+    split_indices = np.where(Y_train[:, best_dimension] <= best_split_value)[0]
     y_train[split_indices] = node  # Update labels to indicate node membership
 
 # Print the decision tree structure
