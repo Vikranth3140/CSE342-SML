@@ -20,17 +20,19 @@ trees = []
 tree_predictions = []
 
 # Bagging: Create 5 different datasets and train decision trees
-for i in range(5):
+for i in tqdm(range(5), desc='Bagging and Training Decision Trees'):
     # Sample with replacement to create a new dataset
-    x_bagged_flat, y_bagged = resample(x_train.reshape(len(x_train), -1), y_train, replace=True, random_state=i)
+    x_bagged_flat, y_bagged = resample(x_train_flattened, y_train, replace=True, random_state=i)
 
     # Train a decision tree on the bagged dataset
     tree = DecisionTreeClassifier(max_depth=None, random_state=i)
     tree.fit(x_bagged_flat, y_bagged)
     
-    # Store the trained tree and its predictions
+    # Store the trained tree
     trees.append(tree)
-    tree_predictions.append(tree.predict(x_train_flattened))
+
+    # Make predictions on the test set and store them for majority voting
+    tree_predictions.append(tree.predict(x_test_flattened))
 
 # Perform majority voting among the tree predictions
 def majority_vote(predictions):
