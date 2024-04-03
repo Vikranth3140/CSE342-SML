@@ -39,7 +39,7 @@ def calculate_gini(labels):
 def find_best_split(feature_values, labels):
     min_gini = float('inf')
     best_split = None
-    for value in np.unique(feature_values):
+    for value in np.sort(np.unique(feature_values)):  # Use sorted unique values for splitting
         left_indices = np.where(feature_values <= value)[0]
         right_indices = np.where(feature_values > value)[0]
         
@@ -97,9 +97,6 @@ def predict_class(sample, tree):
         if sample[split_dim] <= split_value:
             if isinstance(tree[node], dict) and 'left' in tree[node]:
                 node = tree[node]['left']
-            else:
-                predicted_classes.append(tree[node]['class'])
-                break
         else:
             if isinstance(tree[node], dict) and 'right' in tree[node]:
                 node = tree[node]['right']
@@ -122,8 +119,11 @@ for cls in np.unique(y_test):
     cls_indices = np.where(y_test == cls)[0]
     correct_cls_predictions = np.sum(np.array(predicted_classes)[cls_indices] == cls)
     total_cls_samples = len(cls_indices)
-    cls_accuracy = correct_cls_predictions / total_cls_samples
-    class_wise_accuracy[cls] = cls_accuracy
+    if total_cls_samples > 0:
+        cls_accuracy = correct_cls_predictions / total_cls_samples
+        class_wise_accuracy[cls] = cls_accuracy
+    else:
+        class_wise_accuracy[cls] = 0.0
 
 print(f"Overall Accuracy: {accuracy:.4f}")
 print("Class-wise Accuracy:")
