@@ -1,2 +1,3 @@
-# CSE342-SML
-CSE 342 - Statistical Machine Learning
+# CSE342 - Statistical Machine Learning
+
+[Course Description](https://techtree.iiitd.edu.in/viewDescription/filename?=CSE342)
