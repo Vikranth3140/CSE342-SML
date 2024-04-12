@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 
-random.seed(2022294)
+random.seed(2022570)
 
 
 # Loading the dataset
