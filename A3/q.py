@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+
 random.seed(2022294)
 
 
@@ -33,12 +34,12 @@ print("Shape of X train new:",x_train_new.shape)
 y_train_new = np.array(y_train_new)
 print("Shape of Y train new:",y_train_new.shape)
 
-#Reshape the training dataset
+# Reshape the training dataset
 x_train_flat = x_train_new.reshape(-1, 784)
 print("Reshaped dimension of new X train:", x_train_flat.shape)
 
 
-#Computing covariance ,eigenvectors and eigenvalue. Applying PCA on the centralized PCA.
+# Computing covariance ,eigenvectors and eigenvalue. Applying PCA on the centralized PCA.
 x_train_centered = x_train_flat - np.mean(x_train_flat, axis=0)
 num_of_samples = 18623
 cov_matrix = np.dot(x_train_centered.T, x_train_centered) / (num_of_samples -1)
@@ -49,7 +50,7 @@ U = eigenvectors[:, sort_ind]
 print("Shape of U:", U.shape)
 
 
-#Applying PCA to reduce the dimension to p=10
+# Applying PCA to reduce the dimension to p=10
 Up = U[:, :10]
 Yp = np.dot(Up.T, x_train_centered.T)
 Xrecon_p = np.dot(Up, Yp).T + np.mean(x_train_flat, axis=0)
@@ -75,14 +76,14 @@ plt.show()
 
 # Learning Decision Tree form the given dataset
 
-#Calculating gini index using formula 1 - p1**2 - p2**2 - ... - pn**2
+# Calculating gini index using formula 1 - p1**2 - p2**2 - ... - pn**2
 def gini_index(y):
     if len(y)==0:
         return 0
     p_y = np.bincount(y)/len(y)
     return np.sum(p_y*(1-p_y))
 
-# #After getting all the gini indices we calculate the best split region
+# After getting all the gini indices we calculate the best split region
 def best_split_region(x,y):
     best_gini = float('inf')
     best_dim, best_split = None, None
@@ -129,7 +130,7 @@ def classification_tree(X, y, max_depth=2, depth=0):
     left_split_indices = np.where(X[:, best_dim] <= best_split)[0]
     right_split_indices = np.where(X[:, best_dim] > best_split)[0]
 
-    #Choose randomly between left (0) or right (1) to be a terminal node.
+    # Choose randomly between left (0) or right (1) to be a terminal node.
     terminate = random.choice([0,1])
     terminate = 0
     if terminate==1:
@@ -167,7 +168,7 @@ print(Yp_test.shape)
 print("Shape of the reconstructed image:",Xrecon_p_test.shape)
 
 
-#Testing the tree and computing the predicted classes
+# Testing the tree and computing the predicted classes
 predicted_classes = []
 for test_pt in Yp_test.T:
     tree = train_tree
@@ -182,12 +183,12 @@ print(y_test_new)
 print(predicted_classes)
 
 
-#Computing test accuracy
+# Computing test accuracy
 correct = np.sum(y_test_new==predicted_classes)
 print("Overall accuracy:", correct/len(y_test_new))
 
 
-#Computing Class-wise accuracy
+# Computing Class-wise accuracy
 class_acc = []
 for digit in range(3):
     digit_index = np.where(digit == y_test_new)[0]
@@ -202,7 +203,7 @@ print("Accuracy of Class 1:",class_acc[1])
 print("Accuracy of Class 2:",class_acc[2])
 
 
-#Creating 5 bags from original
+# Creating 5 bags from original
 total_sample = len(x_train_flat)
 print(total_sample)
 index_1 = [random.randint(0, total_sample - 1) for i in range(total_sample)]
@@ -228,7 +229,7 @@ print(index_2)
 print(index_3)
 
 
-#Training trees for each dataset 
+# Training trees for each dataset 
 tree_1 = classification_tree(X1,Y1,max_depth=2,depth=0)
 tree_2 = classification_tree(X2,Y2,max_depth=2,depth=0)
 tree_3 = classification_tree(X3,Y3,max_depth=2,depth=0)
@@ -242,7 +243,7 @@ print("Tree 4:",tree_4)
 print("Tree 5:",tree_5)
 
 
-#Prediction
+# Prediction
 trees = [tree_1,tree_2,tree_3,tree_4,tree_5]
 predictions = []
 for test_pt in Yp_test.T:
@@ -266,11 +267,11 @@ print(predictions)
 print(predicted_classes)
 print(y_test_new)
 
-#Computing test accuracy
+# Computing test accuracy
 correct_bag = np.sum(y_test_new==predictions)
 print("Overall accuracy:", correct_bag/len(y_test_new))
 
-#Computing Class-wise accuracy
+# Computing Class-wise accuracy
 class_acc = []
 for digit in range(3):
     digit_index = np.where(digit == y_test_new)[0]
