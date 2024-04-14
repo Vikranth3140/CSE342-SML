@@ -75,6 +75,17 @@ for feature_idx in range(X_train_pca.shape[1]):
 def h1(x):
     return np.where(x[:, best_feature] <= best_threshold, -1, 1)
 
+def h2(X_train_pca, weights_train):
+    # Define the decision stump function h2(x) based on the best split
+    def stump_predict(X):
+        return np.where(X[:, best_feature] <= best_threshold, -1, 1)
+
+    # Compute predictions based on the current split
+    predictions = stump_predict(X_train_pca)
+
+    return predictions
+
+
 # Reshape the validation dataset
 x_val_flat = X_val.reshape(-1, 784)
 
@@ -85,3 +96,74 @@ X_val_pca = Y_val_pca.T
 y_val_pred = h1(X_val_pca)
 accuracy_h1 = accuracy_score(y_val, y_val_pred)
 print(f"Accuracy of h1(x) on validation set: {accuracy_h1}")
+
+
+# Initialize weights for AdaBoost.M1
+weights_train = np.ones(len(y_train)) / len(y_train)
+
+# Train the first decision stump h1(x) using the train set with the initial weights
+predictions_h1 = h1(X_train_pca)
+
+# Compute the error of the first decision stump h1(x)
+error_h1 = np.sum(weights_train * (predictions_h1 != y_train)) / np.sum(weights_train)
+
+# Compute alpha_1 using the error
+alpha_1 = 0.5 * np.log((1 - error_h1) / error_h1)
+
+# Update the weights
+weights_train *= np.exp(-alpha_1 * y_train * predictions_h1)
+weights_train /= np.sum(weights_train)  # Normalize the weights to sum up to 1
+
+
+num_stumps = 300  # Total number of stumps to train
+alphas = []  # List to store the alphas for each stump
+accuracies_val = []  # List to store accuracies on the validation set
+best_accuracy = 0.0
+best_stump_idx = 0
+
+# Initialize weights for AdaBoost.M1
+weights_train = np.ones(len(y_train)) / len(y_train)
+
+for i in range(num_stumps):
+    # Train a decision stump using the train set with the updated weights
+    predictions_stump = h2(X_train_pca, weights_train)  # Replace h2 with your decision stump function
+    error_stump = np.sum(weights_train * (predictions_stump != y_train)) / np.sum(weights_train)
+    alpha_stump = 0.5 * np.log((1 - error_stump) / error_stump)
+    
+    # Store alpha for this stump
+    alphas.append(alpha_stump)
+
+    # Update the weights for the next iteration
+    weights_train *= np.exp(-alpha_stump * y_train * predictions_stump)
+    weights_train /= np.sum(weights_train)  # Normalize the weights to sum up to 1
+    
+    # Evaluate accuracy on the validation set
+    y_val_pred = np.sign(np.dot(X_val_pca, np.array(alphas)))  # Combine predictions of all stumps
+    accuracy_val = accuracy_score(y_val, y_val_pred)
+    accuracies_val.append(accuracy_val)
+    
+    # Update best accuracy and best stump index
+    if accuracy_val > best_accuracy:
+        best_accuracy = accuracy_val
+        best_stump_idx = i + 1  # Stump index starts from 1
+    
+    print(f"Iteration {i + 1}: Accuracy on validation set = {accuracy_val}")
+
+print(f"\nBest accuracy on validation set: {best_accuracy} at iteration {best_stump_idx}")
+
+# Plot accuracy on validation set vs. number of trees
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, num_stumps + 1), accuracies_val, marker='o')
+plt.xlabel('Number of Trees')
+plt.ylabel('Accuracy on Validation Set')
+plt.title('Accuracy on Validation Set vs. Number of Trees')
+plt.grid(True)
+plt.show()
+
+# Evaluate the best stump on the test set
+best_stump = h2(X_train_pca, weights_train[:best_stump_idx])
+# Evaluate accuracy on the validation set
+y_val_pred = np.sign(np.dot(X_val_pca, np.array(alphas).reshape(-1, 1)))  # Reshape alphas to align with dot product
+
+accuracy_test = accuracy_score(y_test, y_val_pred)
+print(f"\nAccuracy on test set using the best stump: {accuracy_test}")
