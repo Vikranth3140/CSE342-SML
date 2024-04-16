@@ -85,7 +85,6 @@ def h2(X_train_pca, weights_train):
 
     return predictions
 
-
 # Reshape the validation dataset
 x_val_flat = X_val.reshape(-1, 784)
 

@@ -78,6 +78,16 @@ for feature_idx in range(X_train_pca.shape[1]):
 def h1(x):
     return np.where(x[:, best_feature] <= best_threshold, -1, 1)
 
+def h2(X_train_pca, weights_train):
+    # Define the decision stump function h2(x) based on the best split
+    def stump_predict(X):
+        return np.where(X[:, best_feature] <= best_threshold, -1, 1)
+
+    # Compute predictions based on the current split
+    predictions = stump_predict(X_train_pca)
+
+    return predictions
+
 # Train the decision stump on the training data
 decision_stump = DecisionTreeRegressor(max_depth=1, random_state=42)
 decision_stump.fit(X_train_pca, y_train)
@@ -193,7 +203,7 @@ for i in range(300):
     stump.fit(X_train_pca, updated_y_train, sample_weight=weights_train)
     
     # Make predictions on the validation set
-    stump_pred_val = stump.predict(X_val_pca)
+    stump_pred_val = stump.predict(X_val)
     
     # Compute MSE on validation set
     mse_val = mean_squared_error(y_val, stump_pred_val)
@@ -221,7 +231,7 @@ best_tree = DecisionTreeRegressor(max_depth=1, random_state=42)
 best_tree.fit(X_train_pca, y_train)  # Train the best tree on the full training set
 
 # Make predictions on the test set using the best tree
-y_test_pred = best_tree.predict(X_test_pca)
+y_test_pred = best_tree.predict(X_val)
 
 # Compute MSE on the test set using the best tree
 mse_test = mean_squared_error(y_test, y_test_pred)
