@@ -136,16 +136,17 @@ mse_residue_h2 = np.mean(residue_h2 ** 2)
 
 print(f"MSE of residue using y - 0.01h1(x) - 0.01h2(x): {mse_residue_h2}")
 
-# Initialize lists to store alpha values, stump predictions, and residues
-alphas = []
+
+num_stumps = 300  # Total number of stumps to train
+alphas = []  # List to store the alphas for each stump
 stump_preds = []
 residues = []
 
-# Initialize weights for AdaBoost.M1
+# Initialize weights
 weights_train = np.ones(len(y_train)) / len(y_train)
 
 # Train decision stumps sequentially
-for i in range(300):
+for i in range(num_stumps):
     # Compute the negative gradient
     gradient = y_train - 0.01 * np.dot(np.array(stump_preds).T, np.array(alphas))
     
