@@ -6,13 +6,13 @@ Topics Covered:
 
 - Bayes Decision theory and Error bounds (Chernoff,
 Bhattacharya, Hoeffding)
-• Feature extraction (FDA, PCA)
-• Parameter estimation (MLE/MAP)
-• Linear classifier (Discriminant analysis, LDA, QDA)
-• Gaussian processes (Regression)
-• Foundations of Deep learning (FFNN, weight decay,
+- Feature extraction (FDA, PCA)
+- Parameter estimation (MLE/MAP)
+- Linear classifier (Discriminant analysis, LDA, QDA)
+- Gaussian processes (Regression)
+- Foundations of Deep learning (FFNN, weight decay,
 regularization) [overlaps with DL]
-• Bagging (reducing var)
-• Boosting (reducing bias) – AdaBoost, Gradient Boosting
-• Clustering (spectral clustering, min/ratio cut)
-• Applications (time permitting)
+- Bagging (reducing var)
+- Boosting (reducing bias) – AdaBoost, Gradient Boosting
+- Clustering (spectral clustering, min/ratio cut)
+- Applications (time permitting)
